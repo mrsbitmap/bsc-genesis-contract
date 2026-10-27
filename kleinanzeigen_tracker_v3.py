@@ -110,6 +110,11 @@ def lade_anzeigen(keyword: str):
                         preis_txt = txt
                         break
 
+        # Falls der Preistag leer ist (bei manchen Zu-verschenken-Anzeigen auf kleinanzeigen.de),
+        # aber im Titel oder URL 'verschenken' steht:
+        if not preis_txt and ("verschenken" in titel.lower() or "verschenken" in full_url.lower()):
+            preis_txt = "Zu verschenken"
+
         yield {
             "id": ad_id,
             "titel": titel,
