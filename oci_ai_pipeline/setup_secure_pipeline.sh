@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-echo "=== [1/4] Configuring Firewall (iptables / ufw) ==="
+echo "=== [1/5] Configuring Firewall (iptables / ufw) ==="
 
 if command -v ufw &>/dev/null && ufw status | grep -q "active"; then
     echo "UFW active. Allowing SSH port 22..."
@@ -20,7 +20,7 @@ else
     iptables -A INPUT -i docker0 -j ACCEPT
 fi
 
-echo "=== [2/4] Verifying Directory Permissions ==="
+echo "=== [2/5] Verifying Directory Permissions ==="
 WORK_DIR="/opt/ai-studio"
 NON_ROOT_USER=${SUDO_USER:-ubuntu}
 
@@ -34,7 +34,14 @@ if id "$NON_ROOT_USER" &>/dev/null; then
 fi
 chmod -R 750 "$WORK_DIR"
 
-echo "=== [3/4] Creating Systemd Service for ComfyUI Backend ==="
+echo "=== [3/5] Configuring Sudoers for Auto-Shutdown ==="
+# Allow NON_ROOT_USER to run shutdown without password prompt
+SUDOERS_FILE="/etc/sudoers.d/ai_worker_shutdown"
+echo "$NON_ROOT_USER ALL=(ALL) NOPASSWD: /sbin/shutdown, /usr/sbin/shutdown, /sbin/poweroff" > "$SUDOERS_FILE"
+chmod 0440 "$SUDOERS_FILE"
+echo "Sudoers rule created at $SUDOERS_FILE for automated shutdown."
+
+echo "=== [4/5] Creating Systemd Service for ComfyUI Backend ==="
 COMFY_SERVICE_FILE="/etc/systemd/system/comfyui.service"
 
 cat << EOF > "$COMFY_SERVICE_FILE"
@@ -55,7 +62,7 @@ Environment="PATH=$WORK_DIR/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/u
 WantedBy=multi-user.target
 EOF
 
-echo "=== [4/4] Creating Systemd Service for Background Worker ==="
+echo "=== [5/5] Creating Systemd Service for Background Worker ==="
 WORKER_SERVICE_FILE="/etc/systemd/system/ai-worker.service"
 
 cat << EOF > "$WORKER_SERVICE_FILE"

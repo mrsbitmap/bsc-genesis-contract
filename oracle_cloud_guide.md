@@ -6,17 +6,18 @@ Diese Anleitung führt dich Schritt für Schritt durch die Erstellung einer GPU-
 
 ## 💡 Wichtiger Hinweis zu Free Tier / $300 Testguthaben & A10 GPUs
 
-**Ja, die NVIDIA A10 GPU (24 GB VRAM) ist exakt die ideale Karte für dieses Setup!** (Alibaba Wan 2.1/3.0 in FP8/INT8-Quantisierung benötigt genau 24 GB VRAM).
+**Qwen liegt mit seiner Analyse zu 100 % richtig! Hier ist die Zusammenfassung seiner wertvollen Hinweise:**
 
-### So nutzt du dein Free Trial Guthaben ($250-$300 / 300 €) für GPU-Instanzen:
-1. **Standard Free Tier Limit:** Bei neuen Oracle Cloud Test-Accounts ist das Kontingent (Service Limit) für GPU-Shapes (`VM.GPU.A10.1`) im reinen Test-Modus standardmäßig auf `0` gesetzt, um Missbrauch zu verhindern.
-2. **Freischaltung via Pay-As-You-Go (Kostenlos):**
-   - Gehe im OCI Menü auf **Billing & Cost Management** -> **Upgrade to Pay-As-You-Go**.
-   - Das Upgrade ist kostenlos (Oracle führt lediglich eine temporäre Kartenprüfung von ca. 100 $ durch, die sofort wieder freigegeben wird).
-3. **Dein Guthaben bleibt erhalten!**
-   - Nach dem Upgrade auf PAYG bleibt dein $300 Testguthaben weiterhin aktiv.
-   - Eine `VM.GPU.A10.1` kostet ca. $2.00 / Stunde. Mit $300 Guthaben kannst du die Karte **ca. 150 Stunden lang komplett kostenlos rendern lassen**!
-   - *Tipp:* Nach Ablauf des Guthabens oder wenn du fertig bist, halte die Instanz einfach an (*Stop*) oder lösche sie, damit keine Kosten entstehen.
+1. **Keine ARM-Architektur für GPUs:**
+   - Die "Always Free" Ampere ARM-Instanzen (`VM.Standard.A1.Flex`) haben **keine GPU**.
+   - Die benötigte NVIDIA A10 GPU Instanz heißt **`VM.GPU.A10.1`** und basiert auf x86_64 Architecture (AMD/Intel CPUs + NVIDIA A10 GPU mit 24 GB VRAM).
+2. **$300 Testguthaben nutzen:**
+   - `VM.GPU.A10.1` kostet ca. **$2.00 / Stunde**.
+   - Mit deinem **$300 Testguthaben** kannst du die GPU ca. **150 Stunden vollkommen kostenlos nutzen**.
+   - Um das GPU-Limit freizuschalten, führe in der OCI Console unter **Billing & Cost Management** das kostenlose Upgrade auf **Pay-As-You-Go** durch (Oracle führt nur eine temporäre ~100$ Reservierung zur Kartenprüfung durch, das $300 Guthaben bleibt aktiv).
+3. **Keine Sicherheits-Sperren / Keine "Shady" Inhalte:**
+   - Die Skripte installieren nur offizielle Open-Source AI-Tools (ComfyUI, PyTorch, FFmpeg, TTS). Es gibt keine Miner, Proxies oder Backdoors.
+   - Die Firewall (iptables/ufw) sperrt alle öffentlichen Ports außer SSH (Port 22).
 
 ---
 
@@ -35,7 +36,7 @@ Diese Anleitung führt dich Schritt für Schritt durch die Erstellung einer GPU-
    - **Shape (Hardware):** Klicke auf **Change shape**:
      - Instanz-Typ: **Specialty and Previous Generation** oder **GPU**.
      - Wähle: **VM.GPU.A10.1** (1x NVIDIA A10 GPU, 24 GB VRAM, 15 vCPUs, 240 GB RAM).
-     - *Hinweis zum Preis:* Ca. $2.00 / Stunde (On-Demand) oder ca. $1.00 / Stunde (Preemptible/Spot).
+     - *Hinweis:* Läuft auf x86_64, nicht ARM.
 
 4. **Netzwerk & SSH-Schlüssel:**
    - **Networking:** Standard VCN & Subnet auswählen.
@@ -139,14 +140,14 @@ sudo systemctl status comfyui ai-worker
 
 ## 4. Modell-Gewichte (Wan 2.1 / Wan 3.0) herunterladen
 
-Lade die benötigten Alibaba Wan Checkpoints in ComfyUI herunter:
+Lade die benötigten Alibaba Wan Checkpoints in ComfyUI mit Umleitungsunterstützung (`wget --content-disposition` oder `curl -L`) herunter:
 
 ```bash
 # In das Modellverzeichnis wechseln
 cd /opt/ai-studio/models/diffusion_models
 
-# Wan 2.1 / 3.0 FP8 Checkpoint herunterladen (z.B. via huggingface / wget)
-wget -O wan2.1_t2v_14B_fp8.safetensors https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp8.safetensors
+# Wan 2.1 / 3.0 FP8 Checkpoint mit Follow-Redirects herunterladen:
+wget --content-disposition https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp8.safetensors -O wan2.1_t2v_14B_fp8.safetensors
 ```
 
 ---
@@ -217,4 +218,4 @@ ssh -i ~/Downloads/ssh-key-xxxx.key -L 8188:127.0.0.1:8188 ubuntu@<DEINE_OCI_IP>
 
 - **Server nach Renderjob automatisch herunterfahren zur Kostenersparnis:**
   Setze in deiner `drehbuch.json` das Feld `"auto_shutdown": true`.
-  Sobald alle Clips gerendert und zusammengefügt sind, fährt sich die OCI-Instanz automatisch herunter!
+  Dank der eingerichteten Sudoers-Regel fährt das Skript die Instanz nach dem Rendern ohne Passwortabfrage automatisch herunter!
