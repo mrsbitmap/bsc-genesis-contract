@@ -1,0 +1,24 @@
+{
+  "project_id": "cyberpunk_commercial_01",
+  "auto_shutdown": false,
+  "scenes": [
+    {
+      "scene_id": 1,
+      "visual_prompt": "Cinematic wide shot, glowing futuristic cyberpunk alley with neon light reflections on wet pavement, 4k ultra detailed",
+      "speech_text": "Willkommen in der Zukunft der vollautomatisierten Video und Audio Produktion.",
+      "speaker_ref_wav": null
+    },
+    {
+      "scene_id": 2,
+      "visual_prompt": "Smooth drone shot hovering over a massive data center illuminated with blue status lights at night, highly cinematic",
+      "speech_text": "Alle 30 Sekunden Clips werden direkt auf deiner eigenen Oracle Cloud Instanz gerendert.",
+      "speaker_ref_wav": null
+    },
+    {
+      "scene_id": 3,
+      "visual_prompt": "Macro shot of a glowing futuristic processor chip assembling with high tech laser effects, cinematic lighting",
+      "speech_text": "Maximale Kontrolle, absolute Sicherheit und volle kommerzielle Lizenzen.",
+      "speaker_ref_wav": null
+    }
+  ]
+}
