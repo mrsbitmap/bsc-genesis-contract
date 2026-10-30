@@ -4,6 +4,22 @@ Diese Anleitung führt dich Schritt für Schritt durch die Erstellung einer GPU-
 
 ---
 
+## 💡 Wichtiger Hinweis zu Free Tier / $300 Testguthaben & A10 GPUs
+
+**Ja, die NVIDIA A10 GPU (24 GB VRAM) ist exakt die ideale Karte für dieses Setup!** (Alibaba Wan 2.1/3.0 in FP8/INT8-Quantisierung benötigt genau 24 GB VRAM).
+
+### So nutzt du dein Free Trial Guthaben ($250-$300 / 300 €) für GPU-Instanzen:
+1. **Standard Free Tier Limit:** Bei neuen Oracle Cloud Test-Accounts ist das Kontingent (Service Limit) für GPU-Shapes (`VM.GPU.A10.1`) im reinen Test-Modus standardmäßig auf `0` gesetzt, um Missbrauch zu verhindern.
+2. **Freischaltung via Pay-As-You-Go (Kostenlos):**
+   - Gehe im OCI Menü auf **Billing & Cost Management** -> **Upgrade to Pay-As-You-Go**.
+   - Das Upgrade ist kostenlos (Oracle führt lediglich eine temporäre Kartenprüfung von ca. 100 $ durch, die sofort wieder freigegeben wird).
+3. **Dein Guthaben bleibt erhalten!**
+   - Nach dem Upgrade auf PAYG bleibt dein $300 Testguthaben weiterhin aktiv.
+   - Eine `VM.GPU.A10.1` kostet ca. $2.00 / Stunde. Mit $300 Guthaben kannst du die Karte **ca. 150 Stunden lang komplett kostenlos rendern lassen**!
+   - *Tipp:* Nach Ablauf des Guthabens oder wenn du fertig bist, halte die Instanz einfach an (*Stop*) oder lösche sie, damit keine Kosten entstehen.
+
+---
+
 ## 1. Oracle Cloud Instanz erstellen (VM.GPU.A10.1)
 
 1. **Einloggen in die Oracle Cloud Console:**
@@ -109,19 +125,33 @@ cp worker.py /opt/ai-studio/scripts/worker.py
 chmod +x /opt/ai-studio/scripts/worker.py
 ```
 
-Starte den Hintergrund-Dienst:
+Starte die Hintergrund-Dienste (ComfyUI Backend & AI Worker):
 
 ```bash
-sudo systemctl start ai-worker
-sudo systemctl enable ai-worker
+sudo systemctl start comfyui ai-worker
+sudo systemctl enable comfyui ai-worker
 
 # Status überprüfen:
-sudo systemctl status ai-worker
+sudo systemctl status comfyui ai-worker
 ```
 
 ---
 
-## 4. Nutzung: Drehbücher füttern & Videos generieren
+## 4. Modell-Gewichte (Wan 2.1 / Wan 3.0) herunterladen
+
+Lade die benötigten Alibaba Wan Checkpoints in ComfyUI herunter:
+
+```bash
+# In das Modellverzeichnis wechseln
+cd /opt/ai-studio/models/diffusion_models
+
+# Wan 2.1 / 3.0 FP8 Checkpoint herunterladen (z.B. via huggingface / wget)
+wget -O wan2.1_t2v_14B_fp8.safetensors https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp8.safetensors
+```
+
+---
+
+## 5. Nutzung: Drehbücher füttern & Videos generieren
 
 Das System arbeitet vollautomatisch im Hintergrund.
 
@@ -150,7 +180,7 @@ Du findest dort Dateien wie:
 
 ---
 
-## 5. SSH Tunneling für ComfyUI Web-Interface (Optional)
+## 6. SSH Tunneling für ComfyUI Web-Interface (Optional)
 
 Solltest du das grafische ComfyUI Web-UI in deinem Browser öffnen wollen, musst du dank der Firewalleinstellungen keinen öffentlichen Port freigeben, sondern nutzt einen verschlüsselten SSH-Tunnel:
 
@@ -165,7 +195,7 @@ ssh -i ~/Downloads/ssh-key-xxxx.key -L 8188:127.0.0.1:8188 ubuntu@<DEINE_OCI_IP>
 
 ---
 
-## 6. Notfall & Troubleshooting (Innerhalb von Minuten behebbar via SSH)
+## 7. Notfall & Troubleshooting (Innerhalb von Minuten behebbar via SSH)
 
 - **Worker Logs prüfen:**
   ```bash
